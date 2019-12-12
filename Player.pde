@@ -1,10 +1,8 @@
 //Player class
-
 class Player {
 
   //variables
-  float pxPos = 50;
-  float pyPos = height/2 - 10;
+  float pxPos, pyPos;
   float pVelocity = 3;
   boolean isLeft, isRight, isUp, isDown;
   int pWidth = 100, pHeight = 65;
@@ -14,12 +12,19 @@ class Player {
   int lastFrameHorizontal = 9;
   int currentFrameVertical = 0; //0 - right, 1 - left
   int iTicks = millis();
+  int iTicks1 = millis();
   int durationOneFrame = 100; //in milliseconds
+  int lives = 3;
+  int livesXPos, livesYPos;
+  boolean check = false;
 
   //constructor
-  Player() {
+  Player(float x, float y) {
+    pxPos = x;
+    pyPos = y;
   }
 
+  //methods
   void display() {
     spritesheet = loadImage("player.png");
     currentImage = spritesheet.get(0 + (currentFrameHorizontal * pWidth), 0 + (currentFrameVertical * pHeight), pWidth, pHeight);
@@ -37,44 +42,19 @@ class Player {
     }
   }
 
-  void jump() {
-    //fySpeed=-6;
-  }
-
-  void fall() {
-    //fySpeed+=0.2;
-  }
-
-  void checkColission() {
-    //with the floor
-    /*if(fyPos>height-24){
-     playing = false;
-     dead = true;
-     tint(204, 0, 0);
-     println("you dead :P");
-     }
-     
-     //with the walls
-     for(int i = 0; i<3; i++){
-     if((fxPos+20 < w[i].wxPos+20 
-     && fxPos+20 > w[i].wxPos-20)
-     && (fyPos < w[i].openingY-w[i].openingHeight-20
-     || fyPos > w[i].openingY+w[i].openingHeight+20 )){
-     
-     tint(204, 0, 0);
-     e.display(fxPos, fyPos);
-     playing=false; 
-     dead = true;
-     println("you dead :P");
-     }
-     }*/
+  void displayLives(int x, int y) {
+    livesXPos = x;
+    livesYPos = y;
+    textSize(20);
+    fill(255);
+    text("Lives: " + lives, livesXPos, livesYPos);
   }
 
   void move() {
     // movement from here - http://studio.processingtogether.com/sp/pad/export/ro.91tcpPtI9LrXp
     final int r = pWidth/2;
     pxPos = constrain(pxPos + pVelocity*(int(isRight) - int(isLeft)), 0, width - pWidth);
-    pyPos = constrain(pyPos + pVelocity*(int(isDown)  - int(isUp)), 52, height - (pHeight+52));
+    pyPos = constrain(pyPos + pVelocity*(int(isDown)  - int(isUp)), 52+40, height - (pHeight+52));
 
     if (isRight) {
       //println("moving right");
@@ -105,6 +85,37 @@ class Player {
 
     default:
       return b;
+    }
+  }
+
+  void checkColission() {
+    int headingHeight = 40; //has to be added to brick.y because I pushes all bricks lower
+
+    for (int i=0; i < level.rows; i++) { 
+      for (int j=0; j < level.cols; j++) {
+
+        if (level.bricks[i][j].bValue == 'E') {
+          if (pxPos + pWidth > level.bricks[i][j].x &&
+            pxPos < level.bricks[i][j].x + 100 &&
+            pyPos + pHeight > level.bricks[i][j].y + headingHeight &&
+            pyPos < level.bricks[i][j].y + 54 + headingHeight && check == false) {
+
+            println("death by - ENEMY");
+            level.bricks[i][j].bValue = '0';
+            lives --;
+          }
+        } else if (level.bricks[i][j].bValue == '1') {
+          if (pxPos + pWidth > level.bricks[i][j].x &&
+            pxPos < level.bricks[i][j].x + 100 &&
+            pyPos + pHeight > level.bricks[i][j].y + headingHeight &&
+            pyPos < level.bricks[i][j].y + 54 + headingHeight) {
+
+            println("death by - BRICK");
+            level.bricks[i][j].bValue = '0';
+            lives --;
+          }
+        }
+      }
     }
   }
 }
